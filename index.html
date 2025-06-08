@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesan Misterius...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Great+Vibes&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Gaya Global & Awal (Netral) */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            text-align: center;
+            overflow: hidden;
+            transition: background-color 1s ease-in-out;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
+            box-sizing: border-box;
+            z-index: 10;
+            animation: fadeIn 1.5s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 25px;
+            color: #555;
+        }
+
+        p {
+            font-size: 1em;
+        }
+
+        #letter-selection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .letter-bubble {
+            width: 55px;
+            height: 55px;
+            font-size: 1.8em;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            color: #666;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .letter-bubble:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-3px);
+        }
+
+        .letter-bubble.selected {
+            background-color: #99ccff;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        #error-message {
+            color: #dc143c;
+            margin-top: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        /* Gaya Romantis (Setelah Password Benar) */
+        body.romantic {
+            background: linear-gradient(to bottom right, #a00030, #6a053c, #3f001f);
+            transition: background 1.5s ease-in-out;
+        }
+
+        body.romantic .container {
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 105, 180, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        body.romantic h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5em;
+            color: #ffe0e6;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: none;
+        }
+
+        #romantic-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            animation: slideInUp 1s ease-out forwards;
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #romantic-content.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .message-page {
+            font-family: 'Merriweather', serif;
+            text-align: left;
+            line-height: 1.8;
+            font-size: 1.2em;
+            margin-top: 30px;
+            color: #fff0f5;
+            min-height: 200px;
+            display: none;
+        }
+
+        .message-page.active-slide {
+            display: block;
+        }
+
+        .page-controls {
+            margin-top: 25px;
+            gap: 15px;
+        }
+
+        .page-controls button {
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+
+        /* Audio Control */
+        audio {
+            margin-top: 25px;
+            width: 100%;
+            max-width: 300px;
+            border-radius: 12px;
+            filter: invert(1);
+        }
+
+        /* Confetti (existing) */
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffb6c1;
+            opacity: 0;
+            border-radius: 50%;
+            transform-origin: center;
+            pointer-events: none;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* --- SIMBOL ROMANTIS BARU --- */
+        .romantic-background-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none; /* Agar tidak mengganggu klik */
+            z-index: 5; /* Di belakang container utama, tapi di atas body */
+            opacity: 0; /* Tersembunyi di awal */
+            transition: opacity 1s ease-in-out;
+        }
+
+        body.romantic .romantic-background-elements {
+            opacity: 1; /* Tampilkan saat mode romantis aktif */
+        }
+
+        .romantic-symbol {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.2); /* Warna hati transparan */
+            font-size: 3em; /* Ukuran default hati */
+            animation: floatAndFade 15s infinite ease-in-out; /* Animasi melayang dan memudar */
+            opacity: 0; /* Tersembunyi di awal animasi */
+            text-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        /* Variasi ukuran dan posisi awal hati */
+        .romantic-symbol:nth-child(1) { left: 10%; font-size: 2.5em; animation-delay: 0s; animation-duration: 18s; }
+        .romantic-symbol:nth-child(2) { left: 30%; font-size: 3em; animation-delay: 2s; animation-duration: 16s; }
+        .romantic-symbol:nth-child(3) { left: 50%; font-size: 2em; animation-delay: 4s; animation-duration: 20s; }
+        .romantic-symbol:nth-child(4) { left: 70%; font-size: 3.5em; animation-delay: 6s; animation-duration: 17s; }
+        .romantic-symbol:nth-child(5) { left: 90%; font-size: 2.8em; animation-delay: 8s; animation-duration: 19s; }
+        .romantic-symbol:nth-child(6) { left: 15%; font-size: 3.2em; animation-delay: 1s; animation-duration: 15s; }
+        .romantic-symbol:nth-child(7) { left: 40%; font-size: 2.2em; animation-delay: 3s; animation-duration: 22s; }
+        .romantic-symbol:nth-child(8) { left: 65%; font-size: 3.8em; animation-delay: 5s; animation-duration: 16s; }
+        .romantic-symbol:nth-child(9) { left: 85%; font-size: 2.7em; animation-delay: 7s; animation-duration: 18s; }
+
+
+        @keyframes floatAndFade {
+            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; } /* Muncul perlahan */
+            90% { opacity: 0.1; } /* Memudar perlahan */
+            100% { transform: translateY(-20vh) translateX(50px) rotate(360deg); opacity: 0; } /* Melayang ke atas dan menghilang */
+        }
+
+        /* Media Query untuk ukuran layar yang lebih besar (desktop) */
+        @media (min-width: 768px) {
+            body {
+                font-size: 18px;
+            }
+            .container {
+                padding: 40px 50px;
+            }
+            h1 {
+                font-size: 2.5em;
+            }
+            #letter-selection {
+                gap: 15px;
+            }
+            .letter-bubble {
+                width: 60px;
+                height: 60px;
+                font-size: 2em;
+            }
+            #error-message {
+                font-size: 1.1em;
+            }
+            body.romantic h1 {
+                font-size: 4.5em;
+                animation: textPulse 2s infinite alternate; /* Mengaktifkan kembali denyutan di desktop */
+            }
+             @keyframes textPulse { /* Definisi ulang agar hanya aktif di desktop */
+                from { transform: scale(1); }
+                to { transform: scale(1.01); }
+            }
+            .message-page {
+                line-height: 1.9;
+                font-size: 1.4em;
+                min-height: 250px;
+            }
+            .page-controls {
+                margin-top: 30px;
+                gap: 20px;
+            }
+            .page-controls button {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
+            audio {
+                margin-top: 30px;
+                max-width: 350px;
+            }
+            /* Simbol romantis di desktop bisa lebih banyak atau berbeda */
+            .romantic-symbol {
+                font-size: 4em; /* Ukuran hati lebih besar di desktop */
+            }
+            .romantic-symbol:nth-child(1) { font-size: 3.5em; }
+            .romantic-symbol:nth-child(2) { font-size: 4em; }
+            .romantic-symbol:nth-child(3) { font-size: 3em; }
+            .romantic-symbol:nth-child(4) { font-size: 4.5em; }
+            .romantic-symbol:nth-child(5) { font-size: 3.8em; }
+            /* Tambahkan lebih banyak simbol di sini jika diinginkan untuk desktop */
+            .romantic-symbol:nth-child(10) { left: 5%; font-size: 4em; animation-delay: 9s; animation-duration: 17s; }
+            .romantic-symbol:nth-child(11) { left: 25%; font-size: 3em; animation-delay: 10s; animation-duration: 20s; }
+            .romantic-symbol:nth-child(12) { left: 45%; font-size: 4.2em; animation-delay: 11s; animation-duration: 16s; }
+        }
+    </style>
+</head>
+<body>
+    <div class="romantic-background-elements">
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        <span class="romantic-symbol">❤️</span>
+        </div>
+
+    <div class="container" id="initial-screen">
+        <h1>Pilih Namamu...</h1>
+        <p>Temukan huruf-huruf namamu di bawah ini dan klik secara berurutan:</p>
+
+        <div id="letter-selection">
+            </div>
+
+        <p id="error-message"></p>
+    </div>
+
+    <div class="container" id="romantic-content">
+        <h1>Untuk wanita yg aku kagumi, <span id="recipient-name-placeholder"></span> <span class="heart-icon">❤️</span></h1>
+
+        <div id="message-pages">
+            <div class="message-page active-slide">
+                <p>
+                    Halo sayang, kamu berhasil menemukan pesan ini! Aku tahu kamu penasaran, jadi aku buatkan sesuatu yang spesial hanya untukmu. Setiap huruf yang kamu klik tadi adalah bagian dari rahasia kecil kita.
+                </p>
+            </div>
+
+            <div class="message-page">
+                <p>
+                    Sekarang, setelah kamu membuka kuncinya, biarkan aku sampaikan betapa berartinya dirimu bagiku. Kau adalah alasan di balik senyumku, inspirasi di setiap langkahku, dan kehangatan yang tak pernah pudar di hatiku.
+                </p>
+            </div>
+
+            <div class="message-page">
+                <p>
+                    Aku sangat bersyukur atas kehadiranmu, atas setiap tawa dan cerita yang kita bagi. Masa depanku bersamamu adalah impian terindah. Aku mencintaimu, lebih dari yang bisa kubayangkan, hari ini dan selamanya.
+                </p>
+            </div>
+            </div>
+
+        <div class="page-controls">
+            <button id="prev-page" disabled>Kembali</button>
+            <button id="next-page">Lanjut</button>
+        </div>
+
+        <audio controls loop>
+            <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mpeg">
+            Maaf, browser Anda tidak mendukung pemutar audio.
+        </audio>
+    </div>
+
+    <script>
+        const correctName = "WITA"; // PASSWORD: WITA (huruf kapital)
+        const allPossibleLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const numberOfRandomLetters = 12;
+
+        const initialScreen = document.getElementById('initial-screen');
+        const romanticContent = document.getElementById('romantic-content');
+        const letterSelectionDiv = document.getElementById('letter-selection');
+        const errorMessage = document.getElementById('error-message');
+        const audioPlayer = document.querySelector('audio');
+        const recipientNamePlaceholder = document.getElementById('recipient-name-placeholder');
+
+        const messagePages = document.querySelectorAll('.message-page');
+        const prevButton = document.getElementById('prev-page');
+        const nextButton = document.getElementById('next-page');
+
+        // Mengambil referensi elemen latar belakang romantis BARU
+        const romanticBgElements = document.querySelector('.romantic-background-elements');
+
+
+        let clickedLettersQueue = [];
+        let currentPageIndex = 0;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateLetterBubbles() {
+            let lettersPool = Array.from(new Set(correctName.split('')));
+            
+            while (lettersPool.length < numberOfRandomLetters) {
+                const randomLetter = allPossibleLetters[Math.floor(Math.random() * allPossibleLetters.length)];
+                if (!lettersPool.includes(randomLetter)) {
+                    lettersPool.push(randomLetter);
+                }
+            }
+
+            lettersPool = shuffleArray(lettersPool);
+
+            letterSelectionDiv.innerHTML = '';
+            lettersPool.forEach(letter => {
+                const bubble = document.createElement('div');
+                bubble.classList.add('letter-bubble');
+                bubble.textContent = letter;
+                bubble.addEventListener('click', () => handleLetterClick(letter, bubble));
+                letterSelectionDiv.appendChild(bubble);
+            });
+        }
+
+        function handleLetterClick(letter, bubbleElement) {
+            bubbleElement.classList.add('selected');
+            setTimeout(() => {
+                bubbleElement.classList.remove('selected');
+            }, 200);
+
+            clickedLettersQueue.push(letter);
+            errorMessage.textContent = '';
+
+            const currentAttempt = clickedLettersQueue.slice(0, correctName.length).join('');
+
+            if (correctName.startsWith(currentAttempt)) {
+                if (currentAttempt === correctName) {
+                    setTimeout(() => {
+                        transitionToRomanticMode();
+                    }, 500);
+                }
+            } else {
+                errorMessage.textContent = 'Urutan huruf salah. Silakan coba lagi!';
+                setTimeout(resetSelection, 1000);
+            }
+        }
+
+        function resetSelection() {
+            clickedLettersQueue = [];
+            errorMessage.textContent = '';
+        }
+
+        function transitionToRomanticMode() {
+            initialScreen.style.opacity = '0';
+            initialScreen.style.pointerEvents = 'none';
+            document.body.classList.add('romantic');
+            
+            // Tampilkan elemen latar belakang romantis
+            romanticBgElements.style.opacity = '1';
+
+            setTimeout(() => {
+                initialScreen.style.display = 'none';
+
+                romanticContent.style.display = 'block';
+                setTimeout(() => {
+                    romanticContent.classList.add('active');
+                }, 50);
+
+                recipientNamePlaceholder.textContent = correctName;
+                
+                showPage(currentPageIndex);
+                playAudio();
+                createBurstConfetti();
+            }, 1000);
+        }
+
+        function showPage(index) {
+            messagePages.forEach((page, i) => {
+                page.classList.remove('active-slide');
+                page.style.display = 'none';
+            });
+
+            if (messagePages[index]) {
+                messagePages[index].style.display = 'block';
+                setTimeout(() => {
+                    messagePages[index].classList.add('active-slide');
+                }, 50);
+            }
+
+            prevButton.disabled = (index === 0);
+            nextButton.disabled = (index === messagePages.length - 1);
+        }
+
+        function playAudio() {
+            if (audioPlayer) {
+                audioPlayer.play().catch(e => console.warn("Autoplay blocked:", e));
+            }
+        }
+
+        nextButton.addEventListener('click', () => {
+            if (currentPageIndex < messagePages.length - 1) {
+                currentPageIndex++;
+                showPage(currentPageIndex);
+            }
+        });
+
+        prevButton.addEventListener('click', () => {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                showPage(currentPageIndex);
+            }
+        });
+
+        function createBurstConfetti() {
+            const numConfetti = 50;
+            for (let i = 0; i < numConfetti; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti-piece');
+                const size = Math.random() * 15 + 5;
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = Math.random() * 100 + 'vh';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 75%)`;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(confetti);
+
+                confetti.addEventListener('animationend', () => {
+                    confetti.remove();
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateLetterBubbles();
+        });
+
+        document.body.addEventListener('click', playAudio, { once: true });
+        document.body.addEventListener('touchstart', playAudio, { once: true });
+    </script>
+</body>
+</html>
